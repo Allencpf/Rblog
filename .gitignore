@@ -18,8 +18,12 @@
 /*.Rcheck/
 
 # RStudio files
-.Rproj.user/
-
+.Rproj.user
+# my write
+.Rhistory
+Public
+static/figures
+blogdown
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf
