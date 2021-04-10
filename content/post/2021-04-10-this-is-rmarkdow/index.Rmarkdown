@@ -1,0 +1,22 @@
+---
+title: this is rmarkdow
+author: Trevor
+date: '2021-04-10'
+slug: this-is-rmarkdow
+categories: []
+tags: []
+---
+
+
+```{r}
+knitr::opts_chunk$set(comment = "#", collapse = T, 
+                      fig.height = 5, fig.width = 5)
+```
+
+
+```{r message=FALSE, warning=FALSE, paged.print=TRUE}
+library(tidyverse)
+dfdemo <- read_csv("/Users/cpf/Documents/paper/R_programming/Rprocess/mydata/dfdemo.csv")
+dfdemo_wide <- 
+head(dfdemo,5)
+```
