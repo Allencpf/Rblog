@@ -2,7 +2,7 @@
 title: 事故严重程度
 author: Trevor
 date: '2021-04-10'
-slug: ''
+slug: '事故严重程度'
 categories:
   - R
 tags: []
