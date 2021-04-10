@@ -1,12 +1,19 @@
 ---
-title: 事故
+title: 事故严重程度分析
 author: Trevor
 date: '2021-04-10'
 slug: accident
 categories:
   - R
-tags: []
+tags: [data_process]
 ---
+
+```{r}
+knitr::opts_chunk$set(comment = "#", collapse = T, 
+                      fig.height = 5, fig.width = 5)
+```
+
+
 ```{r message=FALSE, warning=FALSE, paged.print=TRUE}
 library(tidyverse)
 dfdemo <- read_csv("/Users/cpf/Documents/paper/R_programming/Rprocess/mydata/dfdemo.csv")
@@ -71,4 +78,58 @@ library(nnet)
 mosaicplot(~ WEATHHER + SEX + INJ_SEV, data=dfdemo[which(dfdemo$REST_USE=="1"),], shade = TRUE, lengend = TRUE)
 mosaicplot(~ WEATHHER + SEX + INJ_SEV, data=dfdemo[which(dfdemo$REST_USE=="0"),], shade = TRUE, lengend = TRUE)
 
+```
+
+
+
+## Mixed Models
+### 标准回归
+ij_lm = lm(INJ_SEV ~ WEATHHER, data = dfdemo)
+### mixed model
+```{r message=FALSE, warning=FALSE}
+library(lme4)
+driver1=dfdemo %>% 
+  filter(VENO == 1)
+
+ij_mixed = lmer(INJ_SEV ~ SEX +AGE+ REST_USE + (1 | CASENUM) , 
+                control = lmerControl(calc.derivs = FALSE),data = dfdemo)
+summary(ij_mixed)
+confint(ij_mixed)
+ranef(ij_mixed)$CASENUM %>% head(5)
+coef(ij_mixed)$CASENUM %>% head(5)
+
+library(merTools)
+predictInterval(ij_mixed) %>% 
+  summarise(across(everything(), mean, na.rm= TRUE))
+
+#REsim(ij_mixed)
+plotREsim(REsim(ij_mixed))
+```
+
+## MCMCglmn model for INJ
+```{r}
+dfdemo
+library(MCMCglmm)
+prior = list(R = list(V = 1, nu = 0.002), G = list(G1 = list(V = 1, nu = 0.002), G2 = list(V = 1, nu = 0.002)))
+fitmcmc <- MCMCglmm(INJ_SEV ~ SEX + REST_USE, random = ~CASENUM + VENO, 
+                    data = as.data.frame(dfdemo), verbose=FALSE, prior=prior, family="ordinal")
+
+diag(autocorr(fitmcmc$VCV)[2,,])
+
+#MCMC summary plot for the variance components from model fitmcmc
+plot(fitmcmc$VCV)
+
+#The posterior correlation between the parameters is low
+cor(fitmcmc$VCV)
+
+#
+HPDinterval(fitmcmc$VCV)
+
+priorb <- prior
+priorb[[2]] <- priorb[[2]][-2]
+fitmcmc2 <- MCMCglmm(INJ_SEV ~ SEX + REST_USE, random = ~CASENUM, 
+                    data = as.data.frame(dfdemo), verbose=FALSE, prior=priorb, family="ordinal")
+
+
+fitmcmc$DIC
 ```
